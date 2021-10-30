@@ -7,7 +7,7 @@
 using namespace std;
 
 int main() {
-	Canny img("./test_Data/lena.jpg", "jpg");
+	Canny img("./test_Data/stpietro.jpg", "jpg");
 	CImg<int> imgCanny = img.canny_image(2.0, 0.25, 0.75);
 	int count = 0;
 	cimg_forXY(imgCanny, x, y) {
@@ -34,7 +34,7 @@ int main() {
 	// }
 	// cout << count2 << endl;
 	imgCanny.display();
-	imgCanny.save("./result_Data/lena_canny.jpg");
+	imgCanny.save("./result_Data/stpietro_canny.jpg");
 	//CImg<int> picture_a = img.canny_line(picture, 10);
 	//CImg<int> picture_b = img.delete_line(picture_a);
 	// picture_a.save("result_a.jpg");

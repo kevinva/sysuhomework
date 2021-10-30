@@ -22,9 +22,9 @@ Canny::Canny() {
 	rows = 0;
 	cols = 0;
 	smoothedim = NULL;
-	delta_x = NULL;  //x方向的一阶导数
-	delta_y = NULL;  //y方向的一阶导数
-	dirim = NULL;  //梯度的方向
+	dx = NULL;  //x方向的一阶导数
+	dy = NULL;  //y方向的一阶导数
+	ddirection = NULL;  //梯度的方向
 	magnitude = NULL; //梯度的幅值
 	nms = NULL;   //非极大值抑制后得到矩阵
 	edge = NULL; //边缘数组
@@ -49,9 +49,9 @@ Canny::Canny(string name, string format) {
 	//img.load_jpeg("lena.jpg");
 	rows = img.width();
 	cols = img.height();
-	delta_x = new int[rows*cols]; memset(delta_x, 0x0, rows*cols*sizeof(int));
-	delta_y = new int[rows*cols]; memset(delta_y, 0x0, rows*cols * sizeof(int));
-	dirim = new float[rows*cols]; memset(dirim, 0x0, rows*cols * sizeof(float));
+	dx = new int[rows*cols]; memset(dx, 0x0, rows*cols*sizeof(int));
+	dy = new int[rows*cols]; memset(dy, 0x0, rows*cols * sizeof(int));
+	ddirection = new float[rows*cols]; memset(ddirection, 0x0, rows*cols * sizeof(float));
 	magnitude = new int[rows*cols]; memset(magnitude, 0x0, rows*cols * sizeof(int));
 	nms = new int[rows*cols]; memset(nms, 0x0, rows*cols * sizeof(int));
 	edge = new int[rows*cols]; memset(edge, 0x0, rows*cols * sizeof(int));
@@ -59,9 +59,9 @@ Canny::Canny(string name, string format) {
 }
 
 Canny::~Canny() {
-	delete[] delta_x;
-	delete[] delta_y;
-	delete[] dirim;
+	delete[] dx;
+	delete[] dy;
+	delete[] ddirection;
 	delete[] magnitude;
 	delete[] nms;
 	delete[] edge;
@@ -127,37 +127,37 @@ void Canny::derrivative_x_y() {
 	//计算x方向的一阶导数，判断边界避免遗失边界像素点
 	for (r = 0; r < rows; r++) {
 		pos = r * cols;
-		delta_x[pos] = smoothedim[pos + 1] - smoothedim[pos];
+		dx[pos] = smoothedim[pos + 1] - smoothedim[pos];
 		pos++;
 		for (c = 1; c < (cols - 1); c++, pos++) {
-			delta_x[pos] = smoothedim[pos + 1] - smoothedim[pos - 1];
+			dx[pos] = smoothedim[pos + 1] - smoothedim[pos - 1];
 		}
-		delta_x[pos] = smoothedim[pos] - smoothedim[pos - 1];
+		dx[pos] = smoothedim[pos] - smoothedim[pos - 1];
 	}
 	//计算y方向的一阶导数，判断边界避免遗失边界像素点
 	for (c = 0; c < cols; c++) {
 		pos = c;
-		delta_y[pos] = smoothedim[pos + cols] - smoothedim[pos];
+		dy[pos] = smoothedim[pos + cols] - smoothedim[pos];
 		pos += cols;
 		for (r = 1; r < (rows - 1); r++, pos += cols) {
-			delta_y[pos] = smoothedim[pos + cols] - smoothedim[pos - cols];
+			dy[pos] = smoothedim[pos + cols] - smoothedim[pos - cols];
 		}
-		delta_y[pos] = smoothedim[pos] - smoothedim[pos - cols];
+		dy[pos] = smoothedim[pos] - smoothedim[pos - cols];
 	}
 }
 
 void Canny::radian_direction(int xdirtag, int ydirtag) {
-	double dx = 0.0, dy = 0.0;
+	double dx1 = 0.0, dy1 = 0.0;
 	int r = 0, c = 0, pos = 0;
 	for (r = 0, pos = 0; r < rows; r++) {
 		for (c = 0; c < cols; c++, pos++) {
-			dx = (double)delta_x[pos];
-			dy = (double)delta_y[pos];
+			dx1 = (double)dx[pos];
+			dy1 = (double)dy[pos];
 
-			if (xdirtag == 1) dx = -dx;
-			if (ydirtag == -1) dy = -dy;
+			if (xdirtag == 1) dx1 = -dx1;
+			if (ydirtag == -1) dy1 = -dy1;
 
-			dirim[pos] = (float)angle_radians(dx, dy);
+			ddirection[pos] = (float)angle_radians(dx1, dy1);
 		}
 	}
 }
@@ -166,8 +166,8 @@ void Canny::magnitude_x_y() {
 	int r = 0, c = 0, pos = 0, sq1 = 0, sq2 = 0;
 	for (r = 0, pos = 0; r < rows; r++) {
 		for (c = 0; c < cols; c++, pos++) {
-			sq1 = (int)delta_x[pos] * (int)delta_x[pos];
-			sq2 = (int)delta_y[pos] * (int)delta_y[pos];
+			sq1 = (int)dx[pos] * (int)dx[pos];
+			sq2 = (int)dy[pos] * (int)dy[pos];
 			magnitude[pos] = (short)(0.5 + sqrt((float)sq1 + (float)sq2));
 		}
 	}
@@ -192,8 +192,8 @@ void Canny::non_max_supp() {
 		*resultptr = *resultrowptr = 0;
 	}
 
-	for (rowcount = 1, magrowptr = magnitude + cols + 1, gxrowptr = delta_x + cols + 1,
-		gyrowptr = delta_y + cols + 1, resultrowptr = nms + cols + 1;
+	for (rowcount = 1, magrowptr = magnitude + cols + 1, gxrowptr = dx + cols + 1,
+		gyrowptr = dy + cols + 1, resultrowptr = nms + cols + 1;
 		rowcount < rows - 2;
 		rowcount++, magrowptr += cols, gyrowptr += cols, gxrowptr += cols,
 		resultrowptr += cols) {

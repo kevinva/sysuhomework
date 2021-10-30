@@ -13,9 +13,9 @@ private:
 	int rows;
 	int cols;
 	int *smoothedim;
-	int *delta_x;  //x方向的一阶导数
-	int *delta_y;  //y方向的一阶导数
-	float *dirim;  //梯度的方向
+	int *dx;
+	int *dy;//int *delta_y;  //y方向的一阶导数
+	float *ddirection;//float *dirim;  //梯度的方向
 	int *magnitude; //梯度的幅值
 	int *nms;   //非极大值抑制后得到矩阵
 	int *edge;  //边缘数组
@@ -27,8 +27,9 @@ public:
 
 	// 将图像变成灰度图
 	void RGBtoGray();
+	void rgbToGray();
 
-	// 进行高斯过滤（去噪点）
+	// 进行高斯模糊
 	void gaussian_smooth(float sigma);
 
 	// 计算x,y方向的一阶导数
