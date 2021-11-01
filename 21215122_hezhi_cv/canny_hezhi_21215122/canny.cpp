@@ -18,7 +18,8 @@ double angle_radians(double x, double y);
 void follow_edges(int *edgemapptr, int *edgemagptr, int lowval, int cols);
 CImg<int> Draw_line(CImg<int> tmp, int x, int y, int x1, int y1);
 
-Canny::Canny() {
+Canny::Canny() 
+{
 	rows = 0;
 	cols = 0;
 	smoothedim = NULL;
@@ -30,7 +31,8 @@ Canny::Canny() {
 	edge = NULL; //边缘数组
 }
 
-Canny::Canny(string name, string format) {
+Canny::Canny(string name, string format) 
+{
 	const char *a = name.c_str();
 	string jpg = "jpg";
 	string png = "png";
@@ -58,7 +60,8 @@ Canny::Canny(string name, string format) {
 	smoothedim = new int[rows*cols];  memset(smoothedim, 0x0, rows*cols * sizeof(int));
 }
 
-Canny::~Canny() {
+Canny::~Canny() 
+{
 	delete[] dx;
 	delete[] dy;
 	delete[] ddirection;
@@ -68,11 +71,18 @@ Canny::~Canny() {
 	delete[] smoothedim;
 }
 
-void Canny::display() {
+void Canny::display() 
+{
 	img.display();
 }
 
-void Canny::RGBtoGray() {
+void Canny::save(char *path)
+{
+	img.save(path);
+}
+
+void Canny::rgbToGray() 
+{
 	int r = 0, g = 0, b = 0;
 	cimg_forXY(img, x, y) {
 		r = img(x, y, 0);
@@ -81,6 +91,12 @@ void Canny::RGBtoGray() {
 		img(x, y, 0) = img(x, y, 1) = img(x, y, 2) = (r*0.2126 + g * 0.7152 + b * 0.0722);
 	}
 	img.resize(rows, cols, 1, 1, 5);
+}
+
+CImg<int> Canny::rgbToGrayTest()
+{
+	rgbToGray();
+	return img;
 }
 
 void Canny::gaussian_smooth(float sigma)
@@ -122,7 +138,22 @@ void Canny::gaussian_smooth(float sigma)
 	}
 }
 
-void Canny::derrivative_x_y() {
+CImg<int> Canny::gaussian_smooth_test(float sigma)
+{
+	gaussian_smooth(sigma);
+
+	CImg<int> pic(rows, cols, 1, 1, 5);
+	pic.fill(0);
+	for (int i = 0; i < rows; i++) {
+		for (int j = 0; j < cols; j++) {
+			pic(i, j) = smoothedim[i*cols + j];
+		}
+	}
+	return pic;
+}
+
+void Canny::derrivative_x_y() 
+{
 	int r = 0, c = 0, pos = 0;
 	//计算x方向的一阶导数，判断边界避免遗失边界像素点
 	for (r = 0; r < rows; r++) {
@@ -146,7 +177,8 @@ void Canny::derrivative_x_y() {
 	}
 }
 
-void Canny::radian_direction(int xdirtag, int ydirtag) {
+void Canny::radian_direction(int xdirtag, int ydirtag) 
+{
 	double dx1 = 0.0, dy1 = 0.0;
 	int r = 0, c = 0, pos = 0;
 	for (r = 0, pos = 0; r < rows; r++) {
@@ -173,7 +205,24 @@ void Canny::magnitude_x_y() {
 	}
 }
 
-void Canny::non_max_supp() {
+CImg<int> Canny::magnitude_x_y_test()
+{
+	derrivative_x_y();
+	radian_direction(-1, -1);
+	magnitude_x_y();
+
+	CImg<int> pic(rows, cols, 1, 1, 5);
+	pic.fill(0);
+	for (int i = 0; i < rows; i++) {
+		for (int j = 0; j < cols; j++) {
+			pic(i, j) = magnitude[i*cols + j];
+		}
+	}
+	return pic;
+}
+
+void Canny::non_max_supp() 
+{
 	int rowcount = 0, colcount = 0, count = 0;
 	int *magrowptr, *magptr;
 	int *gxrowptr, *gxptr;
@@ -363,7 +412,22 @@ void Canny::non_max_supp() {
 	}
 }
 
-void Canny::apply_hysteresis(float tlow, float thigh) {
+CImg<int> Canny::non_max_supp_test()
+{
+	non_max_supp();
+
+	CImg<int> pic(rows, cols, 1, 1, 5);
+	pic.fill(0);
+	for (int i = 0; i < rows; i++) {
+		for (int j = 0; j < cols; j++) {
+			pic(i, j) = nms[i*cols + j] * 2;
+		}
+	}
+	return pic;
+}
+
+void Canny::apply_hysteresis(float tlow, float thigh) 
+{
 	int r = 0, c = 0, pos = 0, numedges = 0, lowcount = 0, highcount = 0, lowthreshold = 0, highthreshold = 0,
 		i = 0, *hist, rr = 0, cc = 0;
 	hist = new int[32768];
@@ -421,7 +485,22 @@ void Canny::apply_hysteresis(float tlow, float thigh) {
 	delete[] hist;
 }
 
-void make_gaussian_kernel(float sigma, float **kernel, int *windowsize) {
+CImg<int> Canny::apply_hysteresis_test(float tlow, float thigh)
+{
+	apply_hysteresis(tlow, thigh);
+
+	CImg<int> pic(rows, cols, 1, 1, 5);
+	pic.fill(0);
+	for (int i = 0; i < rows; i++) {
+		for (int j = 0; j < cols; j++) {
+			pic(i, j) = edge[i*cols + j] * 2;
+		}
+	}
+	return pic;
+}
+
+void make_gaussian_kernel(float sigma, float **kernel, int *windowsize) 
+{
 	int i = 0, center = 0;
 	float x, fx, sum = 0.0;
 	//根据高斯滤波核的方差计算高斯核的宽高
@@ -440,7 +519,8 @@ void make_gaussian_kernel(float sigma, float **kernel, int *windowsize) {
 	}
 }
 
-double angle_radians(double x, double y) {
+double angle_radians(double x, double y) 
+{
 	double xu = 0.0, yu = 0.0, ang = 0.0;
 	xu = fabs(x);
 	yu = fabs(y);
@@ -476,13 +556,15 @@ void follow_edges(int *edgemapptr, int *edgemagptr, int lowval, int cols)
 	}
 }
 
-CImg<int> Canny::canny_image() {
+CImg<int> Canny::canny_image() 
+{
 	CImg<int> pic = canny_image(2.0, 0.25, 0.75);
 	return pic;
 }
 
-CImg<int> Canny::canny_image(int sigma, float tlow, float thigh) {
-	RGBtoGray();
+CImg<int> Canny::canny_image(int sigma, float tlow, float thigh) 
+{
+	rgbToGray();
 	gaussian_smooth(sigma);
 	derrivative_x_y();
 	radian_direction(-1, -1);
@@ -493,20 +575,23 @@ CImg<int> Canny::canny_image(int sigma, float tlow, float thigh) {
 	CImg<int> pic(rows, cols, 1, 1, 5);
 	pic.fill(0);
 	for (int i = 0; i < rows; i++) {
-		for (int j = 0; j < cols; j++) {
-			if (edge[i*cols + j] < 0)
-				pic(i, j) = 0;
-			else if (edge[i*cols + j] > 255)
-				pic(i, j) = 255;
-			else
+		for (int j = 0; j < cols; j++) {			
+			if (edge[i*cols + j] < 0) {
+				pic(i, j) = 255;//0;
+			} else if (edge[i*cols + j] > 255) {
+				pic(i, j) = 0;//255;
+			} else {
 				pic(i, j) = edge[i*cols + j];
+			}
+				
 		}
 	}
 	return pic;
 }
 
 
-CImg<int> Canny::canny_line(CImg<int> picture, int distance) {
+CImg<int> Canny::canny_line(CImg<int> picture, int distance) 
+{
 	CImg<int> pic = picture;
 	//用于计算某一个像素点是否为边缘点
 	//判断方法为查看以这个点为中心的八邻域，如果附近只有1个像素点为0, 其他7个为255则是边缘点
@@ -545,7 +630,8 @@ CImg<int> Canny::canny_line(CImg<int> picture, int distance) {
 	return pic;
 }
 
-CImg<int> Canny::delete_line(CImg<int> picture) {
+CImg<int> Canny::delete_line(CImg<int> picture, int distance) 
+{
 	//用于计算某一个像素点是否为边缘点
 	//判断方法为查看以这个点为中心的八邻域，如果附近只有1个像素点为0, 其他7个为255则是边缘点
 	CImg<int> pic = picture;
@@ -575,7 +661,6 @@ CImg<int> Canny::delete_line(CImg<int> picture) {
 	//判断如果两个边界点的距离小于20，就删除这两个边界点组成的矩阵内所有黑点，这样的话即使两个边界点分别是两条直线的话也无所谓
 	//反正是这样的话这两边界点之间都是白色区域，删除也无所谓
 	cimg_forXY(pic, x, y) {
-		int distance = 20;
 		if (isEdge[x][y] == true) {
 			int begin_x = x - distance > 0 ? x - distance : 0;
 			int begin_y = y - distance > 0 ? y - distance : 0;
@@ -621,7 +706,8 @@ CImg<int> Canny::delete_line(CImg<int> picture) {
 	return pic;
 }
 
-CImg<int> Draw_line(CImg<int> tmp, int x ,int y, int x1, int y1) {
+CImg<int> Draw_line(CImg<int> tmp, int x ,int y, int x1, int y1) 
+{
 	
 	CImg <int> TempImg = tmp;
 	int black[] = { 0,0,0 };
@@ -629,8 +715,8 @@ CImg<int> Draw_line(CImg<int> tmp, int x ,int y, int x1, int y1) {
 	return TempImg;
 }
 
-void Canny::test() {
-	for (int i = 0; i < rows*cols; i++) {
-		cout << edge[i] << " ";
-	}
-}
+// void Canny::test() {
+// 	for (int i = 0; i < rows*cols; i++) {
+// 		cout << edge[i] << " ";
+// 	}
+// }
