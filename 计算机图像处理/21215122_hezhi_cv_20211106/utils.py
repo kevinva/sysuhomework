@@ -1,3 +1,5 @@
+import math
+
 # 找两条线的交点
 def findCrossPointWithTwoLine(line1, line2):
     x11, y11, x21, y21 = line1
@@ -16,17 +18,23 @@ def findCrossPointWithTwoLine(line1, line2):
 
 # 找四边形4个角点，找上、左、下、右4条边，
 def find4CrossPointWithLines(lines):
-    pEdges = list()
+    pEdges = list() 
     nEdges = list()
+
+
+
     # 按斜率正负，将线段分为两类
     for i in range(lines.shape[0]):
         for x1, y1, x2, y2 in lines[i]:
-            k = (y2 - y1) / (x2 - x1)
-            # print('k: {}, ({}, {}, {}, {})'.format(k, x1, y1, x2, y2))
-            if k >= 0:
-                pEdges.append((x1, y1, x2, y2))
-            else:
+            if x2 == x1: # 垂直线
                 nEdges.append((x1, y1, x2, y2))
+            else:
+                k = (y2 - y1) / (x2 - x1)
+                # print('k: {}, ({}, {}, {}, {})'.format(k, x1, y1, x2, y2))
+                if abs(k) <= 0.1:  # todo: 这里判断不充分
+                    pEdges.append((x1, y1, x2, y2))
+                else:
+                    nEdges.append((x1, y1, x2, y2))
 
     topEdge = pEdges[0]
     bottomEdge = pEdges[0]
