@@ -1,0 +1,17 @@
+identifier 'QEMUClock'	 [StartOfLine]	Loc=<./data/output/code_6000.c:1:1>
+star '*'	 [LeadingSpace]	Loc=<./data/output/code_6000.c:1:11>
+identifier 'qemu_clock_ptr'		Loc=<./data/output/code_6000.c:1:12>
+l_paren '('		Loc=<./data/output/code_6000.c:1:26>
+identifier 'QEMUClockType'		Loc=<./data/output/code_6000.c:1:27>
+identifier 'type'	 [LeadingSpace]	Loc=<./data/output/code_6000.c:1:41>
+r_paren ')'		Loc=<./data/output/code_6000.c:1:45>
+l_brace '{'	 [StartOfLine]	Loc=<./data/output/code_6000.c:3:1>
+return 'return'	 [StartOfLine] [LeadingSpace]	Loc=<./data/output/code_6000.c:5:5>
+amp '&'	 [LeadingSpace]	Loc=<./data/output/code_6000.c:5:12>
+identifier 'qemu_clocks'		Loc=<./data/output/code_6000.c:5:13>
+l_square '['		Loc=<./data/output/code_6000.c:5:24>
+identifier 'type'		Loc=<./data/output/code_6000.c:5:25>
+r_square ']'		Loc=<./data/output/code_6000.c:5:29>
+semi ';'		Loc=<./data/output/code_6000.c:5:30>
+r_brace '}'	 [StartOfLine]	Loc=<./data/output/code_6000.c:7:1>
+eof ''		Loc=<./data/output/code_6000.c:7:2>
