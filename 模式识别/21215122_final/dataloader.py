@@ -1,23 +1,72 @@
 import os
 import json
+import time
+
+FUNCTION_ID_PREFIX = 'hoho_func'
+VAR_ID_PREFIX = 'hoho_var'
+POINTER_TYPE_ID_PREFIX = 'hoho_pointer_type'
+VAR_TYPE_ID_PREFIX = 'hoho_var_type'
+STRING_CONSTANT_PREFIX = 'hoho_str_constant'
+NUMERIC_CONSTANT_PREFIX = 'hoho_numeric_constant'
+C_VAR_TYPE_LIST = ['char', 'wchar_t', 'short', 'int', 'int8_t', 'int16_t', 'int32_t', 'int64_t', 'uint8_t', 
+                   'uint16_t', 'uint32_t', 'uint64_t', 'float', 'double', 'long', 'size_t', 'bool'] 
 
 
 def getTokenWithFile(filePath):
-    statement = list()
+    tokenList = list()
+    wrongFilePath = './tmp/wrong_{}.txt'.format(time.time())
     with open(filePath, 'r') as file:
-        for line in file.readlines():
+        lineList = file.readlines()
+        isLastType = False
+        for index, line in enumerate(lineList):
             items = line.split('\t')
             if len(items) > 0:
-                statement.append(items[0])
-            else:
-                with open('./tmp/log.txt', 'a+') as logFile:
-                    logFile.write(filePath)
-                    logFile.write('\n')
-                    logFile.write(line)
-                    logFile.write('======')
-                    logFile.write('\n')
+                subItems = items[0].split(' ')
+                if len(subItems) > 1:
+                    val = subItems[1][1:][:-1]   # [1:]为去掉前单引号，[:-1]为去掉后单引号
 
-    return statement
+                    if subItems[0] == 'identifier':
+                        if isLastType:
+                            isLastType = False
+                            tokenList.append('{}:{}'.format(VAR_ID_PREFIX, subItems[1]))
+                            continue
+
+                        if index + 1 < len(lineList):
+                            nextItem = line[index + 1]
+                            nextSubItems = nextItem.split(' ')
+                            if len(nextSubItems) > 1:
+                                if nextSubItems[0] == 'l_paren':
+                                    # tokenList.append('{}:{}'.format(FUNCTION_ID_PREFIX, subItems[1]))  # 自定义函数名
+                                    tokenList.append('{}'.format(FUNCTION_ID_PREFIX))  # 自定义函数名
+                                elif nextSubItems[0] == 'star':
+                                    # tokenList.append('{}:{}'.format(POINTER_TYPE_ID_PREFIX, subItems[1]))  # 指针类型
+                                    tokenList.append('{}'.format(POINTER_TYPE_ID_PREFIX))  # 指针类型
+                                elif nextSubItems[0] == 'identifier':
+                                    if val in C_VAR_TYPE_LIST:
+                                        tokenList.append(val)
+                                    else:
+                                        # tokenList.append('{}:{}'.format(VAR_TYPE_ID_PREFIX, subItems[1]))  # 用户自定义变量类型
+                                        tokenList.append('{}'.format(VAR_TYPE_ID_PREFIX))  # 用户自定义变量类型
+                                    isLastType = True
+                                else:
+                                    tokenList.append(val)   
+                            else:
+                                tokenList.append(val)   
+                        else:
+                            tokenList.append(val) 
+                    else:
+                        tokenList.append(val)
+   
+                else:
+                    with open(wrongFilePath, 'w') as wrongFile:
+                        wrongFile.writelines(lineList)
+                    continue
+            else:
+                with open(wrongFilePath, 'w') as wrongFile:
+                    wrongFile.writelines(lineList)
+                continue
+
+    return tokenList
 
 
 def readData(mode='train'):
@@ -43,7 +92,7 @@ def readData(mode='train'):
         codeStr = codeDict.get('func', '')
         if len(codeStr) > 0:
             filePath = './tmp/code_{}.c'.format(index % 10)
-            print(filePath)
+            print(filePath)   ## hoho_debug
             with open(filePath, 'w') as codeFile:
                 codeFile.write(codeStr)
 
@@ -53,7 +102,7 @@ def readData(mode='train'):
             statement = getTokenWithFile(tmpTokenFilePath)
             if len(statement) > 0:
                 dataList.append(statement)
-                break
+                break   ## hoho_debug
 
     print(dataList[0])
 
