@@ -28,7 +28,14 @@ def affine_forward(x, w, b):
     ###########################################################################
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-    pass
+    D, M = w.shape
+    M_b = b.shape[0]
+    assert M == M_b
+
+    N = x.shape[0]
+    x_r = x.reshape(N, -1)
+    out = np.dot(x_r, w) + b
+    
 
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
     ###########################################################################
@@ -61,7 +68,13 @@ def affine_backward(dout, cache):
     ###########################################################################
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-    pass
+    N = x.shape[0]
+    x_r = x.reshape(N, -1)
+    dx = np.dot(dout, w.T)
+    dx = dx.reshape(*(x.shape))
+    dw = np.dot(x_r.T, dout)
+    db = np.sum(dout, axis = 0)
+
 
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
     ###########################################################################
@@ -659,3 +672,12 @@ def softmax_loss(x, y):
     dx[np.arange(N), y] -= 1
     dx /= N
     return loss, dx
+
+
+if __name__ == '__main__':
+  testX = np.array([[[[1, 2], [2, 3], [3, 4]], 
+                    [[11, 22], [22, 33], [33, 44]],
+                    [[111, 222], [222, 333], [333, 444]]]])
+  print(testX.shape)
+  testX = testX.reshape(1, -1)
+  print(testX)
