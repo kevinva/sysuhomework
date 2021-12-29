@@ -100,7 +100,7 @@ def relu_forward(x):
     ###########################################################################
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-    pass
+    out = x * (x >= 0)
 
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
     ###########################################################################
@@ -127,7 +127,7 @@ def relu_backward(dout, cache):
     ###########################################################################
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-    pass
+    dx = (x >= 0) * dout
 
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
     ###########################################################################
@@ -675,9 +675,11 @@ def softmax_loss(x, y):
 
 
 if __name__ == '__main__':
-  testX = np.array([[[[1, 2], [2, 3], [3, 4]], 
-                    [[11, 22], [22, 33], [33, 44]],
-                    [[111, 222], [222, 333], [333, 444]]]])
-  print(testX.shape)
-  testX = testX.reshape(1, -1)
-  print(testX)
+  testX = np.array([[[[1, 2], [2, 3], [3, -4]], 
+                    [[11, 22], [22, -33], [33, 44]],
+                    [[111, 222], [-222, -333], [333, 444]]]])
+  # print(testX.shape)
+  # testX = testX.reshape(1, -1)
+  # print(testX)
+
+  print(np.max(testX, keepdims = True))
