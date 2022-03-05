@@ -18,230 +18,23 @@ $$\pi=\frac{4 * 落在4分圆的点数}{落在正方形点数}$$
 以下为个采样100个点的分布情况：
 ![./a1.png](./a1.png)
 
-代码如下：
-```
-# ex1
-
-def calculatePi(n: int):
-    circle_count = 0
-    
-    for i in range(n):
-        x = random.random()
-        y = random.random()
-        len_r = np.sqrt(np.power(x, 2) + np.power(y, 2))
-        if len_r <= 1:
-            circle_count += 1
-            
-    pi = circle_count * 4 / n
-    return pi
-
-def ex1():
-    samples_list = [20, 50, 100, 200, 300, 500, 1000, 5000]
-    categories = [str(x) for x in samples_list]
-    epochs = 100
-    result_dict = {}
-    plt.figure(figsize=(16, 9))
-    for index, n in enumerate(samples_list):
-        result_list = []
-        for c in range(epochs):
-            result_list.append(calculatePi(n))
-        result_dict[categories[index]] = result_list
-        plt.plot(range(epochs), result_list)
-    
-    plt.legend(categories)
-    plt.ylabel('Probability')
-    plt.xlabel('epoch')
-    plt.show()
-    
-    mean_list = [np.mean(v) for k, v in result_dict.items()]
-    std_list = [np.var(v) for k, v in result_dict.items()]
-    table = pd.DataFrame({'采用数目': samples_list, '均值': mean_list, '方差': std_list})
-    print(table)
-    
-ex1()
-```
 
 
 ### Exercise 2
 
-##### 概率约为25.24%
+蚂蚁走一次的算法过程：
 
-代码如下：
-```
-# ex2
+1. 若当前在左上、右上、左下角的端点，去0~1的随机数p，当p <= 1/2时，往纵向走，否则往横向走，走之前先判断下一个准备走的点是否已经到达访问次数限制；
+2. 若当前在上下左右四条边界上的点（出去角的端点），则分别有1/3的概率走左、右、上（或下）方向，走之前先判断下一个准备走的点是否已经到达访问次数限制；
+3. 除了以上的点，则分别有1/4的概率走上、下、左、右四个方向，走之前先判断下一个准备走的点是否已经到达访问次数限制；
+4. 当蚂蚁无路可走或已经到达目的地时，算一次试验。
 
-def canMoveTo(x: int, y: int, grid: np.array):
-    result = True
-    mid = (grid.shape[0] // 2, grid.shape[0] // 2)
-    if (x, y) == mid:
-        if grid[(x, y)] >= 2:
-            result = False
-    else:
-        if grid[(x, y)] >= 1:
-            result = False
-    return result
+最后，求20000次试验里面，能成功到达右下角端点（目的地）的试验次数的占比即为蚂蚁到达目标的概率。
 
 
-def didMoveToDesintation():
-    size = 7
-    mid = (size // 2, size // 2)
-    
-    grid = np.zeros((size, size), dtype=np.int32)
-    current = (0, 0)
-    grid[current] = 1
-    path = [current]
-    
-    result = False
-    
-    while True:
-        p = random.random()
-        
-        x = current[0]
-        y = current[1]
-        if current == (0, 0):
-            if not canMoveTo(x + 1, y, grid) and not canMoveTo(x, y + 1, grid):
-                # 绝路
-                break
-            else:
-                if p < 0.5:
-                    x += 1 # 纵走
-                else: 
-                    y += 1 # 横走
-        elif current == (0, size - 1):
-            if not canMoveTo(x + 1, y, grid) and not canMoveTo(x, y - 1, grid):
-                # 绝路
-                break
-            else:                
-                if p < 0.5: 
-                    x += 1
-                else:
-                    y -= 1
-        elif current == (size - 1, 0):
-            if not canMoveTo(x - 1, y, grid) and not canMoveTo(x, y + 1, grid):
-                # 绝路
-                break
-            else:
-                if p < 0.5:
-                    x -= 1
-                else:
-                    y += 1
-        elif current == (size - 1, size - 1):
-                # 到达，结束！
-                result = True
-                break
-        else:
-            if x == 0:
-                if not canMoveTo(x, y - 1, grid) and not canMoveTo(x, y + 1, grid) and not canMoveTo(x + 1, y, grid):
-                    # 绝路
-                    break
-                else:
-                    if p < 0.3333:
-                        y -=1
-                    elif 0.3333 <= p < 0.6667:
-                        y += 1
-                    else:
-                        x += 1
-            elif x == size - 1:
-                if not canMoveTo(x, y - 1, grid) and not canMoveTo(x, y + 1, grid) and not canMoveTo(x - 1, y, grid):
-                    # 绝路
-                    break
-                else:
-                    if p < 0.3333:
-                        y -=1
-                    elif 0.3333 <= p < 0.6667:
-                        y += 1
-                    else:
-                        x -= 1
-            elif y == 0:
-                if not canMoveTo(x - 1, y, grid) and not canMoveTo(x + 1, y, grid) and not canMoveTo(x, y + 1, grid):
-                    # 绝路
-                    break
-                else:
-                    if p < 0.3333:
-                        x -=1
-                    elif 0.3333 <= p < 0.6667:
-                        x += 1
-                    else:
-                        y += 1
-            elif y == size - 1:
-                if not canMoveTo(x - 1, y, grid) and not canMoveTo(x + 1, y, grid) and not canMoveTo(x, y - 1, grid):
-                    # 绝路
-                    break
-                else:
-                    if p < 0.3333:
-                        x -=1
-                    elif 0.3333 <= p < 0.6667:
-                        x += 1
-                    else:
-                        y -= 1
-            else:
-                if not canMoveTo(x - 1, y, grid) and not canMoveTo(x + 1, y, grid) and not canMoveTo(x, y - 1, grid) and not canMoveTo(x, y + 1, grid):
-                    # 绝路
-                    break
-                else:
-                    if p < 0.25:
-                        x -= 1
-                    elif 0.25 <= p < 0.5:
-                        x += 1
-                    elif 0.5 <= p < 0.75:
-                        y -= 1
-                    else:
-                        y += 1
-        
-        if canMoveTo(x, y, grid):            
-            path.append((x, y))
-            current = (x, y)
-            grid[current] += 1
-    
-#     print('grid: \n', grid)
-#     print('path: ', path)
-    return result
+##### 得出概率约为25.24%
 
-def ex2():
-    total_count = 20000
-    succeed_count = 0
-    size = 7
-    for i in range(total_count):
-        if didMoveToDesintation():
-            succeed_count += 1
-            
-    print('p = ', succeed_count / total_count)
-    
-ex2()
-```
 
 ### Exercise 3
 
 ##### 验证得概率约为97.73%，符合理论计算。
-代码如下：
-```
-# ex3
-
-def isASucceed():
-    result = False
-    p = random.random()
-    if p <= 0.85:
-        result = True
-    return result
-
-def isBCSucceed():
-    result = False
-    p1 = random.random()
-    if p1 <= 0.95:
-        p2 = random.random()
-        if p2 <= 0.9:
-            result = True
-    return result
-
-
-def ex3():
-    total_count = 60000
-    fail_count = 0
-    for i in range(total_count):
-        if not isASucceed() and not isBCSucceed():
-            fail_count += 1
-    
-    print(1 - fail_count / total_count)
-    
-ex3()
-```
