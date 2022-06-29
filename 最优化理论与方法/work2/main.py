@@ -3,13 +3,14 @@ import matplotlib.pyplot as plt
 import math
 
 def func(x):
-    return 54 * np.power(x, 6) + 45 * np.power(x, 5) - 102 * np.power(x, 4) - 69 * np.power(x, 3) + 16 * x - 4
+    return 54 * np.power(x, 6) + 45 * np.power(x, 5) - 102 * np.power(x, 4) - 69 * np.power(x, 3) + 35 * np.power(x, 2) + 16 * x - 4
 
 def plot(f):
     """画函数图像"""
     x_list = np.linspace(-2, 2, 1000)
     y_list = [f(x) for x in x_list]
     plt.figure(figsize=(16, 9))
+    plt.ylim((-30, 100))
     plt.plot(x_list, y_list)
     plt.xlabel('x')
     plt.ylabel('f(x)')
@@ -48,7 +49,7 @@ def evaluate_convergence_speed(x1, x2, x_final):
     return c
 
 if __name__ == '__main__':
-    # plot(func)
+    plot(func)
 
     x1 = -2
     x2 = x1 + 0.04
